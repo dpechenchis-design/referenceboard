@@ -232,11 +232,9 @@ document.getElementById('newName').addEventListener('keydown', e=>{ if(e.key==='
 document.getElementById('logoutBtn').onclick = ()=>{ localStorage.removeItem(KEY); show('login'); };
 
 (async function init(){
-  if(localStorage.getItem(KEY)){
-    try{ show('main'); await loadClients(); return; }
-    catch(e){ /* falls back to login */ }
-  }
-  show('login');
+  // Захист прибрано: одразу показуємо адмінку без екрана входу.
+  show('main');
+  await loadClients();
 })();
 </script>
 </body>
