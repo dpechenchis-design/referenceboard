@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reference Boards — адмінка</title>
+<style>
+  :root{
+    --bg:#0e0f12; --panel:#16181d; --panel2:#1c1f26; --border:#282c34;
+    --text:#eceae3; --muted:#9a978f; --accent:#c8f04a; --accent-dim:#8ba832;
+    --red:#ff6b6b; --green:#4ade80;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55; padding:0 16px 80px;
+  }
+  .wrap{max-width:860px; margin:0 auto}
+  h1{font-family:Georgia,'Times New Roman',serif; font-weight:600; font-size:28px}
+  .muted{color:var(--muted); font-size:13.5px}
+  header{
+    display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;
+    justify-content:space-between; padding:28px 0 18px; border-bottom:1px solid var(--border);
+  }
+  .brandline{display:flex; align-items:center; gap:10px}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+  .section{
+    background:var(--panel); border:1px solid var(--border); border-radius:14px;
+    padding:22px; margin-top:22px;
+  }
+  input[type=text], input[type=password]{
+    width:100%; background:var(--panel2); border:1px solid var(--border); border-radius:9px;
+    color:var(--text); padding:10px 12px; font:inherit; font-size:14px;
+  }
+  input:focus{outline:none; border-color:var(--accent-dim)}
+  .btn{
+    background:var(--accent); color:#111; border:0; border-radius:9px;
+    padding:10px 20px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent; color:var(--text); border:1px solid var(--border)}
+  .btn.ghost:hover{border-color:var(--accent-dim)}
+  .row{display:flex; gap:10px}
+  .row input{flex:1}
+  .err{color:var(--red); font-size:13.5px; margin-top:10px; min-height:18px}
+  #loginView{max-width:400px; margin:80px auto 0}
+  .client-card{
+    display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+    background:var(--panel2); border:1px solid var(--border); border-radius:11px;
+    padding:13px 16px; margin-top:10px;
+  }
+  .client-card .name{font-weight:600; font-size:15px}
+  .client-card .date{color:var(--muted); font-size:12.5px; flex:1}
+  .client-card .btn{padding:7px 14px; font-size:13px}
+  .pinbadge{font-size:11.5px; letter-spacing:.5px; border:1px solid var(--accent-dim); color:var(--accent); border-radius:6px; padding:2px 8px}
+  .icon-btn{background:none; border:0; cursor:pointer; font-size:16px; color:var(--muted); padding:4px}
+  .icon-btn:hover{color:var(--red)}
+  .empty{color:var(--muted); text-align:center; padding:26px 10px; font-size:14px}
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:var(--accent); color:#111; padding:10px 22px; border-radius:10px;
+    font-weight:600; font-size:14px; opacity:0; pointer-events:none; transition:opacity .25s; z-index:50;
+  }
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="loginView" style="display:none">
+    <div class="section">
+      <div class="brandline" style="margin-bottom:6px"><span class="dot"></span><h1>Reference Boards</h1></div>
+      <div class="muted" style="margin-bottom:16px">Вхід для команди</div>
+      <input type="password" id="pwd" placeholder="Пароль">
+      <div class="err" id="loginErr"></div>
+      <button class="btn" id="loginBtn" style="width:100%">Увійти</button>
+    </div>
+  </div>
+
+  <div id="mainView" style="display:none">
+    <header>
+      <div class="brandline"><span class="dot"></span><h1>Reference Boards</h1></div>
+      <button class="btn ghost" id="logoutBtn">Вийти</button>
+    </header>
+
+    <div class="section">
+      <div class="muted" style="margin-bottom:10px">Новий клієнт</div>
+      <div class="row">
+        <input type="text" id="newName" placeholder="Ім'я клієнта / бренд">
+        <input type="text" id="newPin" placeholder="PIN (необов'язково)" style="max-width:180px">
+        <button class="btn" id="addBtn">+ Додати клієнта</button>
+      </div>
+      <div class="err" id="addErr"></div>
+    </div>
+
+    <div class="section">
+      <div class="muted">Клієнти</div>
+      <div class="err" id="listErr"></div>
+      <div id="clientList"></div>
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'rb-admin-key';
+let clients = [];
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showToast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 1800);
+}
+function show(view){
+  document.getElementById('loginView').style.display = view==='login' ? '' : 'none';
+  document.getElementById('mainView').style.display = view==='main' ? '' : 'none';
+}
+async function api(path, opts = {}){
+  opts.headers = Object.assign(
+    {'content-type':'application/json', 'x-admin-key': localStorage.getItem(KEY)||''},
+    opts.headers||{}
+  );
+  const r = await fetch(path, opts);
+  if(r.status === 401){ localStorage.removeItem(KEY); show('login'); throw new Error('unauthorized'); }
+  return r;
+}
+
+function boardLink(token){ return location.origin + '/board?t=' + token; }
+
+function renderClients(){
+  const box = document.getElementById('clientList');
+  if(!clients.length){ box.innerHTML = '<div class="empty">Поки нікого. Додайте першого клієнта вище.</div>'; return; }
+  box.innerHTML = clients.map(c=>{
+    const d = new Date(c.createdAt).toLocaleDateString('uk-UA');
+    return '<div class="client-card">'+
+      '<span class="name">'+esc(c.name)+'</span>'+
+      (c.pin ? '<span class="pinbadge">PIN '+esc(c.pin)+'</span>' : '')+
+      '<span class="date">'+d+'</span>'+
+      '<a class="btn ghost" href="'+esc(boardLink(c.token))+'" target="_blank" rel="noopener">Відкрити борд</a>'+
+      '<button class="btn" data-copy="'+esc(c.token)+'">Копіювати лінк</button>'+
+      '<button class="btn ghost" data-pin="'+esc(c.id)+'">'+(c.pin ? 'Змінити PIN' : 'PIN')+'</button>'+
+      '<button class="icon-btn" data-rm="'+esc(c.id)+'" title="Видалити (клацніть двічі)">✕</button>'+
+    '</div>';
+  }).join('');
+  box.querySelectorAll('[data-copy]').forEach(b=>b.onclick = ()=>{
+    const tok = b.getAttribute('data-copy');
+    const c = clients.find(x=>x.token===tok);
+    let text = boardLink(tok);
+    if(c && c.pin) text += '\nPIN: ' + c.pin;
+    (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(
+      ()=>showToast(c && c.pin ? 'Лінк + PIN скопійовано' : 'Лінк скопійовано'),
+      ()=>{ prompt('Скопіюйте:', text); }
+    );
+  });
+  box.querySelectorAll('[data-pin]').forEach(b=>b.onclick = async ()=>{
+    const id = b.getAttribute('data-pin');
+    const c = clients.find(x=>x.id===id);
+    const p = prompt('PIN для борда «'+c.name+'» (порожнє поле = без PIN):', c.pin||'');
+    if(p===null) return;
+    try{
+      await api('/api/clients', {method:'PATCH', body: JSON.stringify({id, pin: p.trim()})});
+      await loadClients();
+      showToast(p.trim() ? 'PIN оновлено' : 'PIN прибрано');
+    }catch(e){ if(e.message!=='unauthorized') showToast('Не вдалося оновити PIN'); }
+  });
+  box.querySelectorAll('[data-rm]').forEach(b=>b.onclick = async ()=>{
+    if(!b.dataset.armed){
+      b.dataset.armed='1'; b.textContent='✕?'; b.style.color='var(--red)';
+      setTimeout(()=>{ if(b.isConnected){ delete b.dataset.armed; b.textContent='✕'; b.style.color=''; } }, 2500);
+      return;
+    }
+    await api('/api/clients?id='+b.getAttribute('data-rm'), {method:'DELETE'});
+    await loadClients();
+  });
+}
+
+async function loadClients(){
+  const errEl = document.getElementById('listErr');
+  errEl.textContent = '';
+  const r = await api('/api/clients');
+  const data = await r.json().catch(()=>({}));
+  if(!r.ok){
+    // storage down / server error — show it instead of a silently empty list
+    errEl.textContent = data.error || ('Помилка сервера (' + r.status + ')');
+    document.getElementById('clientList').innerHTML = '';
+    return;
+  }
+  clients = data.clients || [];
+  renderClients();
+}
+
+document.getElementById('loginBtn').onclick = async ()=>{
+  const pwd = document.getElementById('pwd').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.textContent = '';
+  try{
+    const r = await fetch('/api/auth', {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({password: pwd})});
+    const data = await r.json().catch(()=>({}));
+    if(!r.ok){ errEl.textContent = data.error === 'wrong password' ? 'Невірний пароль' : (data.error || 'Помилка'); return; }
+    localStorage.setItem(KEY, pwd);
+    show('main');
+    await loadClients();
+  }catch(e){ errEl.textContent = 'Немає зв\'язку з сервером'; }
+};
+document.getElementById('pwd').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
+
+document.getElementById('addBtn').onclick = async ()=>{
+  const inp = document.getElementById('newName');
+  const pinInp = document.getElementById('newPin');
+  const errEl = document.getElementById('addErr');
+  errEl.textContent = '';
+  const name = inp.value.trim();
+  const pin = pinInp.value.trim();
+  if(!name) return;
+  try{
+    const r = await api('/api/clients', {method:'POST', body: JSON.stringify({name, pin})});
+    if(!r.ok){
+      const data = await r.json().catch(()=>({}));
+      errEl.textContent = data.error || 'Не вдалося додати';
+      return;
+    }
+    inp.value = ''; pinInp.value = '';
+    await loadClients();
+    showToast('Клієнта додано');
+  }catch(e){ if(e.message!=='unauthorized') errEl.textContent = 'Немає зв\'язку з сервером'; }
+};
+document.getElementById('newName').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('addBtn').click(); });
+
+document.getElementById('logoutBtn').onclick = ()=>{ localStorage.removeItem(KEY); show('login'); };
+
+(async function init(){
+  if(localStorage.getItem(KEY)){
+    try{ show('main'); await loadClients(); return; }
+    catch(e){ /* falls back to login */ }
+  }
+  show('login');
+})();
+</script>
+</body>
+</html>
