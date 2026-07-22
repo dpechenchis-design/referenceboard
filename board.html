@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reference Board — стиль вашого контенту</title>
+<style>
+  :root{
+    --bg:#0e0f12; --panel:#16181d; --panel2:#1c1f26; --border:#282c34;
+    --text:#eceae3; --muted:#9a978f; --accent:#c8f04a; --accent-dim:#8ba832;
+    --red:#ff6b6b; --green:#4ade80; --amber:#f5c518;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55; padding:0 16px 80px;
+  }
+  .wrap{max-width:1180px; margin:0 auto}
+  h1,h2,h3{font-family:Georgia,'Times New Roman',serif; font-weight:600; letter-spacing:.2px}
+  h1{font-size:30px}
+  h2{font-size:20px; margin-bottom:4px}
+  .muted{color:var(--muted); font-size:13.5px}
+
+  header{
+    display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;
+    justify-content:space-between; padding:28px 0 18px; border-bottom:1px solid var(--border);
+  }
+  .brandline{display:flex; align-items:center; gap:10px}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+  .lang-switch{display:flex; border:1px solid var(--border); border-radius:8px; overflow:hidden}
+  .lang-switch button{
+    background:transparent; color:var(--muted); border:0; padding:6px 14px;
+    cursor:pointer; font-size:13px;
+  }
+  .lang-switch button.active{background:var(--accent); color:#111}
+  #saveStatus{font-size:12.5px; min-width:110px; text-align:right}
+  #saveStatus.ok{color:var(--green)}
+  #saveStatus.err{color:var(--red)}
+
+  .section{
+    background:var(--panel); border:1px solid var(--border); border-radius:14px;
+    padding:22px; margin-top:22px;
+  }
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+
+  label.fld{display:block; font-size:12px; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin:12px 0 5px}
+  input[type=text], textarea{
+    width:100%; background:var(--panel2); border:1px solid var(--border); border-radius:9px;
+    color:var(--text); padding:10px 12px; font:inherit; font-size:14px;
+  }
+  textarea{resize:vertical; min-height:64px}
+  input:focus, textarea:focus{outline:none; border-color:var(--accent-dim)}
+
+  .kw-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+  .kw{
+    display:inline-flex; align-items:center; gap:7px;
+    background:var(--panel2); border:1px solid var(--accent-dim); color:var(--accent);
+    border-radius:999px; padding:5px 13px; font-size:13.5px;
+  }
+  .kw b{cursor:pointer; color:var(--muted); font-weight:400}
+  .kw b:hover{color:var(--red)}
+  .kw-suggest{
+    background:transparent; border:1px dashed var(--border); color:var(--muted);
+    border-radius:999px; padding:5px 13px; font-size:13px; cursor:pointer;
+  }
+  .kw-suggest:hover{border-color:var(--accent-dim); color:var(--text)}
+
+  .slider-row{display:grid; grid-template-columns:150px 1fr 150px; gap:14px; align-items:center; margin:14px 0}
+  @media(max-width:640px){.slider-row{grid-template-columns:90px 1fr 90px; gap:8px}}
+  .slider-row span{font-size:13.5px; color:var(--muted)}
+  .slider-row span:last-child{text-align:right}
+  input[type=range]{width:100%; accent-color:var(--accent); cursor:pointer; height:22px}
+  .slider-row.custom span{color:var(--accent)}
+  .custom-add{margin-top:18px; border-top:1px dashed var(--border); padding-top:4px}
+  .custom-add-row{display:flex; gap:10px; flex-wrap:wrap}
+  .custom-add-row input{flex:1; min-width:150px}
+
+  .tabs{display:flex; flex-wrap:wrap; gap:8px; margin-top:28px}
+  .tab-btn{
+    background:var(--panel); border:1px solid var(--border); color:var(--muted);
+    border-radius:10px 10px 0 0; padding:11px 20px; cursor:pointer; font-size:14.5px;
+  }
+  .tab-btn .cnt{
+    display:inline-block; min-width:20px; text-align:center; margin-left:7px;
+    background:var(--panel2); border-radius:999px; font-size:12px; padding:1px 6px;
+  }
+  .tab-btn.active{background:var(--panel2); color:var(--text); border-bottom-color:var(--panel2); font-weight:600}
+  .tab-btn.active .cnt{background:var(--accent); color:#111}
+  .tab-body{
+    background:var(--panel2); border:1px solid var(--border); border-radius:0 14px 14px 14px;
+    padding:20px;
+  }
+
+  .add-row{display:flex; gap:10px; margin-bottom:18px}
+  .add-row input{flex:1}
+  .btn{
+    background:var(--accent); color:#111; border:0; border-radius:9px;
+    padding:10px 20px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent; color:var(--text); border:1px solid var(--border)}
+  .btn.ghost:hover{border-color:var(--accent-dim)}
+
+  .cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:16px}
+  .cards.wide{grid-template-columns:repeat(auto-fill,minmax(430px,1fr))}
+  @media(max-width:520px){.cards,.cards.wide{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:13px;
+    padding:14px; display:flex; flex-direction:column; gap:12px; position:relative;
+  }
+  .card.fav{border-color:var(--amber)}
+  .card-top{display:flex; align-items:center; gap:8px}
+  .badge{
+    font-size:11px; text-transform:uppercase; letter-spacing:.7px;
+    border:1px solid var(--border); border-radius:6px; padding:2px 8px; color:var(--muted);
+  }
+  .card-top a{color:var(--muted); font-size:12px; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1}
+  .card-top a:hover{color:var(--accent)}
+  .icon-btn{background:none; border:0; cursor:pointer; font-size:17px; line-height:1; padding:3px; color:var(--muted)}
+  .icon-btn.star.on{color:var(--amber)}
+  .icon-btn.del:hover{color:var(--red)}
+
+  .embed{border-radius:10px; overflow:hidden; background:#000}
+  .embed iframe{display:block; width:100%; border:0}
+  .embed.v iframe{height:540px}
+  .embed.w{aspect-ratio:16/9}
+  .embed.w iframe{height:100%}
+  .link-fallback{
+    display:block; padding:26px 16px; text-align:center; color:var(--muted);
+    background:var(--panel2); border-radius:10px; text-decoration:none; font-size:13.5px; word-break:break-all;
+  }
+  .link-fallback:hover{color:var(--accent)}
+
+  .verdicts{display:flex; gap:8px}
+  .verdicts button{
+    flex:1; background:var(--panel2); border:1px solid var(--border); color:var(--muted);
+    border-radius:8px; padding:8px 4px; cursor:pointer; font-size:13px;
+  }
+  .verdicts button.on-want{background:rgba(74,222,128,.13); border-color:var(--green); color:var(--green)}
+  .verdicts button.on-partial{background:rgba(245,197,24,.12); border-color:var(--amber); color:var(--amber)}
+  .verdicts button.on-no{background:rgba(255,107,107,.12); border-color:var(--red); color:var(--red)}
+
+  .aspects{display:flex; flex-wrap:wrap; gap:6px}
+  .asp{
+    background:var(--panel2); border:1px solid var(--border); color:var(--muted);
+    border-radius:999px; padding:4px 11px; font-size:12.5px; cursor:pointer; user-select:none;
+  }
+  .asp.like{border-color:var(--green); color:var(--green); background:rgba(74,222,128,.1)}
+  .asp.dislike{border-color:var(--red); color:var(--red); background:rgba(255,107,107,.1)}
+  .asp-hint{font-size:11.5px; color:var(--muted); margin-top:-4px}
+
+  .card label.fld{margin-top:2px}
+  .card textarea{min-height:52px; font-size:13.5px}
+
+  .export-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px}
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:var(--accent); color:#111; padding:10px 22px; border-radius:10px;
+    font-weight:600; font-size:14px; opacity:0; pointer-events:none; transition:opacity .25s;
+    z-index:50;
+  }
+  .toast.show{opacity:1}
+  .empty{color:var(--muted); text-align:center; padding:30px 10px; font-size:14px}
+  .help-note{
+    margin-top:26px; border:1px dashed var(--border); border-radius:12px;
+    padding:16px 20px; color:var(--muted); font-size:13.5px;
+  }
+  .help-note b{color:var(--accent)}
+  #gate{max-width:420px; margin:100px auto 0; text-align:center}
+  #gate h2{margin-bottom:8px}
+  .err{color:var(--red); font-size:13.5px; margin-top:8px; min-height:18px}
+</style>
+</head>
+<body>
+
+<div id="gate" style="display:none">
+  <div class="section">
+    <h2 id="gateTitle"></h2>
+    <div class="muted" id="gateText"></div>
+    <div id="pinForm" style="display:none; margin-top:16px">
+      <input type="text" id="pinInput" placeholder="PIN" style="text-align:center" autocomplete="off">
+      <div class="err" id="pinErr"></div>
+      <button class="btn" id="pinBtn" style="width:100%">Відкрити · Open</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap" id="app" style="display:none">
+
+  <header>
+    <div>
+      <div class="brandline"><span class="dot"></span><h1 data-i="title">Reference Board</h1></div>
+      <div class="muted" data-i="subtitle">Покажіть, який контент вам близький — це стане основою вашого стилю</div>
+    </div>
+    <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap">
+      <span id="saveStatus" class="muted"></span>
+      <button class="btn" id="saveBtn" data-i="saveBtn">💾 Зберегти</button>
+      <input type="text" id="clientName" style="width:220px" placeholder="Ім'я клієнта / бренд">
+      <div class="lang-switch">
+        <button id="lang-ua" onclick="setLang('ua')">UA</button>
+        <button id="lang-en" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CLIENT BOX -->
+  <div class="section">
+    <h2 data-i="clientTitle">Про вас</h2>
+    <div class="muted" data-i="clientHint">Кілька слів про себе - все, що важливо для ваших відео.</div>
+
+    <label class="fld" data-i="kwLabel">Ключові слова вашого бренду</label>
+    <input type="text" id="kwInput" data-ph="kwPh" placeholder="напр. premium, energizing… + Enter">
+    <div class="kw-row" id="kwList"></div>
+    <div class="kw-row" id="kwSuggest"></div>
+
+    <div class="grid2">
+      <div>
+        <label class="fld" data-i="aboutLabel">Хто ви / чим займаєтесь</label>
+        <textarea id="fAbout" data-ph="aboutPh" placeholder="напр. коуч з продажів для B2B-фаундерів"></textarea>
+      </div>
+      <div>
+        <label class="fld" data-i="offerLabel">Ваш оффер / продукт</label>
+        <textarea id="fOffer" data-ph="offerPh" placeholder="що продаєте і кому"></textarea>
+      </div>
+      <div>
+        <label class="fld" data-i="audienceLabel">Ваша аудиторія</label>
+        <textarea id="fAudience" data-ph="audiencePh" placeholder="хто має дивитися цей контент"></textarea>
+      </div>
+      <div>
+        <label class="fld" data-i="goalLabel">Ціль контенту</label>
+        <textarea id="fGoal" data-ph="goalPh" placeholder="ліди, впізнаваність, продажі, найм…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- STYLE PROFILE -->
+  <div class="section">
+    <h2 data-i="styleTitle">Стиль-профіль</h2>
+    <div class="muted" data-i="styleHint">Перетягніть повзунок туди, де вам комфортно.</div>
+    <div id="sliders"></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs" id="tabBtns"></div>
+  <div class="tab-body">
+    <div class="add-row">
+      <input type="text" id="urlInput" data-ph="urlPh" placeholder="Вставте посилання на Reels / YouTube / TikTok / LinkedIn…">
+      <button class="btn" id="addBtn" data-i="addBtn">Додати</button>
+    </div>
+    <div class="asp-hint" data-i="aspHint" style="margin-bottom:12px">
+      У картці клікайте на теги: 1 клік — подобається (зелений), 2 кліки — не подобається (червоний).
+    </div>
+    <div id="cards" class="cards"></div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="section">
+    <h2 data-i="notesTitle">Нотатки</h2>
+    <div class="muted" data-i="notesHint">Все, що не влізло вище: ідеї, побажання, питання.</div>
+    <textarea id="fNotes" data-ph="notesPh" placeholder="напишіть тут…" style="margin-top:12px; min-height:110px"></textarea>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="section">
+    <h2 data-i="exportTitle">Копія для себе</h2>
+    <div class="muted" data-i="exportHint">Все зберігається автоматично. Хочете копію собі - завантажте звіт.</div>
+    <div class="export-row">
+      <button class="btn ghost" id="btnReport" data-i="btnReport">⬇ Завантажити звіт (.txt)</button>
+      <button class="btn ghost" id="btnCopy" data-i="btnCopy">Скопіювати підсумок</button>
+    </div>
+  </div>
+
+  <div class="help-note" data-i="helpNote">
+    💡 Як користуватись: додайте 5–15 відео/постів, які вам подобаються (і кілька, які точно НІ),
+    відмітьте вердикт і теги, допишіть коментарі. Все зберігається саме собою - коли закінчите, просто дайте нам знати.
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ i18n ============ */
+const I18N = {
+  ua: {
+    title:'Reference Board',
+    subtitle:'Покажіть, який контент вам близький — це стане основою вашого стилю',
+    clientName:"Ім'я клієнта / бренд",
+    clientTitle:'Про вас',
+    clientHint:'Кілька слів про себе - все, що важливо для ваших відео.',
+    kwLabel:'Ключові слова вашого бренду',
+    kwPh:'напр. premium, energizing… + Enter',
+    aboutLabel:'Хто ви / чим займаєтесь', aboutPh:'напр. коуч з продажів для B2B-фаундерів',
+    offerLabel:'Ваш оффер / продукт', offerPh:'що продаєте і кому',
+    audienceLabel:'Ваша аудиторія', audiencePh:'хто має дивитися цей контент',
+    goalLabel:'Ціль контенту', goalPh:'ліди, впізнаваність, продажі, найм…',
+    styleTitle:'Стиль-профіль',
+    styleHint:'Перетягніть повзунок туди, де вам комфортно.',
+    urlPh:'Вставте посилання на Reels / YouTube / TikTok / LinkedIn…',
+    addBtn:'Додати',
+    aspHint:'У картці клікайте на теги: 1 клік — подобається (зелений), 2 кліки — не подобається (червоний).',
+    exportTitle:'Копія для себе',
+    exportHint:'Все зберігається автоматично. Хочете копію собі - завантажте звіт.',
+    btnReport:'⬇ Завантажити звіт (.txt)', btnCopy:'Скопіювати підсумок',
+    saveBtn:'💾 Зберегти',
+    notesTitle:'Нотатки',
+    notesHint:'Все, що не влізло вище: ідеї, побажання, питання.',
+    notesPh:'напишіть тут…',
+    helpNote:'💡 Як користуватись: додайте 5–15 відео/постів, які вам подобаються (і кілька, які точно НІ), відмітьте вердикт і теги, допишіть коментарі. Все зберігається саме собою - коли закінчите, просто дайте нам знати.',
+    tabs:{short:'Короткі відео', long:'Довгі відео', carousel:'Каруселі', post:'Пости'},
+    verdictWant:'🔥 Хочу так', verdictPartial:'🤔 Частково', verdictNo:'🚫 Не моє',
+    likesLabel:'Що подобається', likesPh:'хук, подача, вайб…',
+    dislikesLabel:'Що не подобається', dislikesPh:'що б прибрали…',
+    emptyTab:'Поки порожньо. Вставте посилання вище — і тут з’явиться прев’ю.',
+    aspects:{hook:'Хук', visual:'Візуал / зйомка', editing:'Монтаж', captions:'Титри', pacing:'Темп', music:'Музика', energy:'Подача / енергія', topic:'Тема', story:'Сторітелінг', cta:'Заклик до дії'},
+    sliders:{
+      energy:['Спокійний','Енергійний'],
+      density:['Мінімалістичний','Насичений'],
+      humor:['Серйозний','З гумором'],
+      premium:['Преміум / люкс','Простий і свій'],
+      expert:['Експертний','Лайфстайл'],
+      tempo:['Повільний темп','Швидкий темп'],
+      scripted:['Чіткий сценарій','Імпровізація / вайб'],
+      emotion:['Стримано, по суті','Емоційно, особисто'],
+      edge:['Безпечний / нейтральний','Провокаційний / сміливий'],
+      production:['Просто говорю в камеру','Багато графіки та б-ролу']
+    },
+    customAddTitle:'Свій критерій',
+    customLeftPh:'лівий полюс, напр. «класика»',
+    customRightPh:'правий полюс, напр. «тренди»',
+    customBtn:'+ Додати критерій',
+    customDelHint:'Прибрати критерій',
+    suggested:['premium','energizing','calm','bold','minimal','expert','friendly','luxury','playful','authentic'],
+    copied:'Скопійовано!', badUrl:'Вставте, будь ласка, посилання',
+    delHint:'Видалити (клацніть двічі)',
+    fav:'⭐ фаворит',
+    saving:'Зберігаю…', saved:'Збережено ✓', saveError:'Не збереглося, повторюю…',
+    demoMode:'Демо-режим: нічого не зберігається на сервері',
+    invalidTitle:'Посилання не працює',
+    invalidText:'Перевірте, чи повністю скопіювали лінк, або напишіть нам.',
+    loading:'Завантажую…',
+    r_client:'КЛІЄНТ', r_keywords:'Ключові слова', r_about:'Про клієнта', r_offer:'Оффер',
+    r_audience:'Аудиторія', r_goal:'Ціль', r_style:'СТИЛЬ-ПРОФІЛЬ', r_refs:'РЕФЕРЕНСИ', r_notes:'НОТАТКИ',
+    r_verdict:'Вердикт', r_liked:'Сподобалось', r_disliked:'Не сподобалось',
+    r_commentLike:'Коментар (+)', r_commentDislike:'Коментар (–)', r_none:'—'
+  },
+  en: {
+    title:'Reference Board',
+    subtitle:'Show us the content you like - we\'ll build your style from it',
+    clientName:'Client / brand name',
+    clientTitle:'About you',
+    clientHint:'A few words about yourself - anything that matters for your videos.',
+    kwLabel:'Your brand keywords',
+    kwPh:'e.g. premium, energizing… + Enter',
+    aboutLabel:'Who you are / what you do', aboutPh:'e.g. sales coach for B2B founders',
+    offerLabel:'Your offer / product', offerPh:'what you sell and to whom',
+    audienceLabel:'Your audience', audiencePh:'who should watch this content',
+    goalLabel:'Content goal', goalPh:'leads, awareness, sales, hiring…',
+    styleTitle:'Style profile',
+    styleHint:'Drag each slider to wherever feels right. Gut feeling is fine.',
+    urlPh:'Paste a Reels / YouTube / TikTok / LinkedIn link…',
+    addBtn:'Add',
+    aspHint:'Click the tags on each card: one click = like (green), two clicks = dislike (red).',
+    exportTitle:'A copy for yourself',
+    exportHint:'Everything saves automatically. Grab the report below if you want a copy.',
+    btnReport:'⬇ Download report (.txt)', btnCopy:'Copy summary',
+    saveBtn:'💾 Save',
+    notesTitle:'Notes',
+    notesHint:'Anything that didn\'t fit above: ideas, wishes, questions.',
+    notesPh:'type here…',
+    helpNote:'💡 How to use: add 5–15 videos/posts you like (plus a few you definitely DON\'T), set a verdict and tags on each, add comments if you want. Everything saves on its own - just let us know when you\'re done.',
+    tabs:{short:'Short videos', long:'Long videos', carousel:'Carousels', post:'Posts'},
+    verdictWant:'🔥 Want this', verdictPartial:'🤔 Partially', verdictNo:'🚫 Not mine',
+    likesLabel:'What you like', likesPh:'hook, delivery, vibe…',
+    dislikesLabel:"What you don't like", dislikesPh:'what you\'d cut…',
+    emptyTab:'Nothing here yet. Paste a link above and the preview will show up.',
+    aspects:{hook:'Hook', visual:'Visuals / footage', editing:'Editing', captions:'Captions', pacing:'Pacing', music:'Music', energy:'Delivery / energy', topic:'Topic', story:'Storytelling', cta:'Call to action'},
+    sliders:{
+      energy:['Calm','Energetic'],
+      density:['Minimal','Rich / dense'],
+      humor:['Serious','Humorous'],
+      premium:['Premium / luxury','Simple & relatable'],
+      expert:['Expert','Lifestyle'],
+      tempo:['Slow pace','Fast pace'],
+      scripted:['Fully scripted','Improvised / vibe'],
+      emotion:['Reserved, to the point','Emotional, personal'],
+      edge:['Safe / neutral','Provocative / bold'],
+      production:['Just talking to camera','Lots of graphics & b-roll']
+    },
+    customAddTitle:'Your own criterion',
+    customLeftPh:'left pole, e.g. "classic"',
+    customRightPh:'right pole, e.g. "trendy"',
+    customBtn:'+ Add criterion',
+    customDelHint:'Remove criterion',
+    suggested:['premium','energizing','calm','bold','minimal','expert','friendly','luxury','playful','authentic'],
+    copied:'Copied!', badUrl:'Please paste a link',
+    delHint:'Delete (click twice)',
+    fav:'⭐ favorite',
+    saving:'Saving…', saved:'Saved ✓', saveError:'Not saved, retrying…',
+    demoMode:'Demo mode: nothing is saved to the server',
+    invalidTitle:'This link doesn\'t work',
+    invalidText:'Check that you copied the full link, or message us.',
+    loading:'Loading…',
+    r_client:'CLIENT', r_keywords:'Keywords', r_about:'About', r_offer:'Offer',
+    r_audience:'Audience', r_goal:'Goal', r_style:'STYLE PROFILE', r_refs:'REFERENCES', r_notes:'NOTES',
+    r_verdict:'Verdict', r_liked:'Liked', r_disliked:'Disliked',
+    r_commentLike:'Comment (+)', r_commentDislike:'Comment (–)', r_none:'—'
+  }
+};
+const ASPECT_KEYS = ['hook','visual','editing','captions','pacing','music','energy','topic','story','cta'];
+const SLIDER_KEYS = ['energy','density','humor','premium','expert','tempo','scripted','emotion','edge','production'];
+const TAB_KEYS = ['short','long','carousel','post'];
+
+/* ============ token & state ============ */
+const params = new URLSearchParams(location.search);
+const TOKEN = (params.get('t') || params.get('token') || '').trim();
+const DEMO = TOKEN === 'demo';
+const LS_KEY = 'refboard-' + (TOKEN || 'none');
+const PIN_KEY = 'refboard-pin-' + (TOKEN || 'none');
+
+let BOARD_PIN = '';
+try{ BOARD_PIN = localStorage.getItem(PIN_KEY) || ''; }catch(e){}
+function authHeaders(){
+  const h = {};
+  if(BOARD_PIN) h['x-board-key'] = BOARD_PIN;
+  try{
+    const a = localStorage.getItem('rb-admin-key');
+    if(a) h['x-admin-key'] = a; // the team opens boards without a PIN
+  }catch(e){}
+  return h;
+}
+
+let state = {
+  lang:'ua', clientName:'', keywords:[], about:'', offer:'', audience:'', goal:'', notes:'',
+  sliders:{energy:50, density:50, humor:50, premium:50, expert:50, tempo:50, scripted:50, emotion:50, edge:50, production:50},
+  custom:[],
+  refs:{short:[], long:[], carousel:[], post:[]},
+  activeTab:'short'
+};
+
+function t(key){ return I18N[state.lang][key]; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ============ saving: local cache + debounced server push ============ */
+// Each server push costs one Vercel Blob "advanced operation" and the Hobby
+// plan includes only 2000/month, so pushes are debounced generously and
+// identical payloads are never re-sent. localStorage still saves instantly.
+const SAVE_DEBOUNCE = 3000;
+let saveTimer = null;
+let dirty = false;
+let lastPushed = null;
+let retryDelay = 5000;
+function setStatus(kind){
+  const el = document.getElementById('saveStatus');
+  el.className = kind==='saved' ? 'ok' : kind==='error' ? 'err' : 'muted';
+  el.textContent = kind==='saving' ? t('saving') : kind==='saved' ? t('saved') : kind==='error' ? t('saveError') : '';
+}
+function save(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+  if(DEMO) return;
+  dirty = true;
+  clearTimeout(saveTimer);
+  setStatus('saving');
+  saveTimer = setTimeout(pushServer, SAVE_DEBOUNCE);
+}
+async function pushServer(){
+  const payload = JSON.stringify(state);
+  if(payload === lastPushed){   // nothing actually changed — don't spend an operation
+    dirty = false;
+    setStatus('saved');
+    return true;
+  }
+  try{
+    const r = await fetch('/api/board?token='+encodeURIComponent(TOKEN), {
+      method:'POST',
+      headers: Object.assign({'content-type':'application/json'}, authHeaders()),
+      body: payload
+    });
+    if(r.status === 401){
+      // PIN was changed while the board was open: ask for it again
+      try{ localStorage.removeItem(PIN_KEY); }catch(e){}
+      BOARD_PIN = '';
+      showPinGate(true);
+      return false;
+    }
+    if(!r.ok) throw new Error('save failed');
+    dirty = false;
+    lastPushed = payload;
+    retryDelay = 5000;
+    setStatus('saved');
+    return true;
+  }catch(e){
+    setStatus('error');
+    clearTimeout(saveTimer);
+    // back off instead of hammering a broken/throttled backend every 5s
+    saveTimer = setTimeout(pushServer, retryDelay);
+    retryDelay = Math.min(retryDelay * 2, 60000);
+    return false;
+  }
+}
+
+/* ============ link parsing ============ */
+function parseRef(url){
+  url = url.trim();
+  let m;
+  if(m = url.match(/instagram\.com\/(?:[\w.]+\/)?(p|reel|reels|tv)\/([A-Za-z0-9_-]+)/i)){
+    const kind = m[1].toLowerCase()==='reels' ? 'reel' : m[1].toLowerCase();
+    return {platform:'Instagram', embed:'https://www.instagram.com/'+kind+'/'+m[2]+'/embed/', shape:'v'};
+  }
+  if(m = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]{6,})/i))
+    return {platform:'YouTube Shorts', embed:'https://www.youtube.com/embed/'+m[1], shape:'v'};
+  if(m = url.match(/(?:youtube\.com\/watch\?[^#]*v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/i))
+    return {platform:'YouTube', embed:'https://www.youtube.com/embed/'+m[1], shape:'w'};
+  if(m = url.match(/tiktok\.com\/.*\/video\/(\d+)/i))
+    return {platform:'TikTok', embed:'https://www.tiktok.com/embed/v2/'+m[1], shape:'v'};
+  if(m = url.match(/(?:activity|ugcPost)[:-](\d{10,})/i))
+    return {platform:'LinkedIn', embed:'https://www.linkedin.com/embed/feed/update/urn:li:activity:'+m[1], shape:'v'};
+  if(/linkedin\.com/i.test(url)) return {platform:'LinkedIn', embed:null, shape:'link'};
+  if(/instagram\.com/i.test(url)) return {platform:'Instagram', embed:null, shape:'link'};
+  return {platform:'Link', embed:null, shape:'link'};
+}
+
+/* ============ render: static labels ============ */
+function applyLang(){
+  document.documentElement.lang = state.lang==='ua' ? 'uk' : 'en';
+  document.querySelectorAll('[data-i]').forEach(el=>{
+    const v = t(el.getAttribute('data-i'));
+    if(v !== undefined) el.innerHTML = v;
+  });
+  document.querySelectorAll('[data-ph]').forEach(el=>{
+    const v = t(el.getAttribute('data-ph'));
+    if(v !== undefined) el.placeholder = v;
+  });
+  document.getElementById('clientName').placeholder = t('clientName');
+  document.getElementById('lang-ua').classList.toggle('active', state.lang==='ua');
+  document.getElementById('lang-en').classList.toggle('active', state.lang==='en');
+}
+function setLang(l){ state.lang = l; save(); renderAll(); }
+
+/* ============ render: keywords ============ */
+function renderKeywords(){
+  const list = document.getElementById('kwList');
+  list.innerHTML = state.keywords.map((k,i)=>
+    '<span class="kw">'+esc(k)+'<b data-del="'+i+'">✕</b></span>').join('');
+  list.querySelectorAll('[data-del]').forEach(b=>b.onclick = ()=>{
+    state.keywords.splice(+b.getAttribute('data-del'),1); save(); renderKeywords();
+  });
+  const sug = document.getElementById('kwSuggest');
+  sug.innerHTML = t('suggested').filter(k=>!state.keywords.includes(k))
+    .map(k=>'<button class="kw-suggest" data-kw="'+esc(k)+'">+ '+esc(k)+'</button>').join('');
+  sug.querySelectorAll('[data-kw]').forEach(b=>b.onclick = ()=>{
+    state.keywords.push(b.getAttribute('data-kw')); save(); renderKeywords();
+  });
+}
+
+/* ============ render: sliders ============ */
+function renderSliders(){
+  const box = document.getElementById('sliders');
+  if(!Array.isArray(state.custom)) state.custom = [];
+  let html = SLIDER_KEYS.map(k=>{
+    const [l,r] = t('sliders')[k];
+    return '<div class="slider-row"><span>'+esc(l)+'</span>'+
+      '<input type="range" min="0" max="100" value="'+(state.sliders[k]??50)+'" data-sl="'+k+'">'+
+      '<span>'+esc(r)+'</span></div>';
+  }).join('');
+  html += state.custom.map((c,i)=>
+    '<div class="slider-row custom"><span>'+esc(c.l)+'</span>'+
+    '<input type="range" min="0" max="100" value="'+(c.v??50)+'" data-csl="'+i+'">'+
+    '<span>'+esc(c.r)+
+    ' <button class="icon-btn del" data-crm="'+i+'" title="'+esc(t('customDelHint'))+'">✕</button></span></div>'
+  ).join('');
+  html += '<div class="custom-add">'+
+    '<label class="fld">'+t('customAddTitle')+'</label>'+
+    '<div class="custom-add-row">'+
+    '<input type="text" id="cLeft" placeholder="'+esc(t('customLeftPh'))+'">'+
+    '<input type="text" id="cRight" placeholder="'+esc(t('customRightPh'))+'">'+
+    '<button class="btn ghost" id="cAdd">'+t('customBtn')+'</button>'+
+    '</div></div>';
+  box.innerHTML = html;
+  box.querySelectorAll('[data-sl]').forEach(inp=>inp.oninput = ()=>{
+    state.sliders[inp.getAttribute('data-sl')] = +inp.value; save();
+  });
+  box.querySelectorAll('[data-csl]').forEach(inp=>inp.oninput = ()=>{
+    state.custom[+inp.getAttribute('data-csl')].v = +inp.value; save();
+  });
+  box.querySelectorAll('[data-crm]').forEach(b=>b.onclick = ()=>{
+    state.custom.splice(+b.getAttribute('data-crm'),1); save(); renderSliders();
+  });
+  document.getElementById('cAdd').onclick = ()=>{
+    const l = document.getElementById('cLeft').value.trim();
+    const r = document.getElementById('cRight').value.trim();
+    if(!l || !r) return;
+    state.custom.push({l, r, v:50}); save(); renderSliders();
+  };
+}
+
+/* ============ render: tabs & cards ============ */
+function renderTabs(){
+  const bar = document.getElementById('tabBtns');
+  bar.innerHTML = TAB_KEYS.map(k=>
+    '<button class="tab-btn'+(state.activeTab===k?' active':'')+'" data-tab="'+k+'">'+
+    esc(t('tabs')[k])+'<span class="cnt">'+state.refs[k].length+'</span></button>').join('');
+  bar.querySelectorAll('[data-tab]').forEach(b=>b.onclick = ()=>{
+    state.activeTab = b.getAttribute('data-tab'); save(); renderTabs(); renderCards();
+  });
+}
+
+function embedHtml(ref){
+  if(ref.embed){
+    const shape = ref.shape==='w' ? 'w' : 'v';
+    return '<div class="embed '+shape+'"><iframe src="'+esc(ref.embed)+'" loading="lazy" allowfullscreen allow="encrypted-media"></iframe></div>';
+  }
+  return '<a class="link-fallback" href="'+esc(ref.url)+'" target="_blank" rel="noopener">🔗 '+esc(ref.url)+'</a>';
+}
+
+function cardHtml(r, i){
+  const asp = ASPECT_KEYS.map(a=>{
+    const v = (r.aspects||{})[a]||0;
+    return '<span class="asp'+(v===1?' like':v===-1?' dislike':'')+'" data-asp="'+a+'">'+esc(t('aspects')[a])+'</span>';
+  }).join('');
+  return '<div class="card'+(r.favorite?' fav':'')+'" data-card="'+i+'">'+
+    '<div class="card-top">'+
+      '<span class="badge">'+esc(r.platform)+'</span>'+
+      '<a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.url)+'</a>'+
+      '<button class="icon-btn star'+(r.favorite?' on':'')+'" data-fav title="'+esc(t('fav'))+'">★</button>'+
+      '<button class="icon-btn del" data-rm title="'+esc(t('delHint'))+'">✕</button>'+
+    '</div>'+
+    embedHtml(r)+
+    '<div class="verdicts">'+
+      '<button data-v="want" class="'+(r.verdict==='want'?'on-want':'')+'">'+t('verdictWant')+'</button>'+
+      '<button data-v="partial" class="'+(r.verdict==='partial'?'on-partial':'')+'">'+t('verdictPartial')+'</button>'+
+      '<button data-v="no" class="'+(r.verdict==='no'?'on-no':'')+'">'+t('verdictNo')+'</button>'+
+    '</div>'+
+    '<div class="aspects">'+asp+'</div>'+
+    '<div><label class="fld">'+t('likesLabel')+'</label>'+
+    '<textarea data-txt="likes" placeholder="'+esc(t('likesPh'))+'">'+esc(r.likes)+'</textarea></div>'+
+    '<div><label class="fld">'+t('dislikesLabel')+'</label>'+
+    '<textarea data-txt="dislikes" placeholder="'+esc(t('dislikesPh'))+'">'+esc(r.dislikes)+'</textarea></div>'+
+  '</div>';
+}
+
+// All click handlers below mutate state and patch ONLY the touched elements.
+// Rebuilding the grid would recreate the embed iframes and make every video
+// flash and reset, so a full renderCards() happens only on structural changes.
+function bindCard(card, refs){
+  const ref = ()=> refs[+card.getAttribute('data-card')];
+  card.querySelectorAll('[data-v]').forEach(b=>b.onclick = ()=>{
+    const r = ref();
+    const v = b.getAttribute('data-v');
+    r.verdict = (r.verdict===v) ? null : v;
+    card.querySelectorAll('[data-v]').forEach(btn=>{
+      btn.className = r.verdict===btn.getAttribute('data-v') ? 'on-'+r.verdict : '';
+    });
+    save();
+  });
+  card.querySelectorAll('[data-asp]').forEach(b=>b.onclick = ()=>{
+    const r = ref();
+    r.aspects = r.aspects||{};
+    const a = b.getAttribute('data-asp');
+    const cur = r.aspects[a]||0;
+    const next = cur===0 ? 1 : cur===1 ? -1 : 0;
+    r.aspects[a] = next;
+    b.classList.toggle('like', next===1);
+    b.classList.toggle('dislike', next===-1);
+    save();
+  });
+  const fav = card.querySelector('[data-fav]');
+  fav.onclick = ()=>{
+    const r = ref();
+    r.favorite = !r.favorite;
+    fav.classList.toggle('on', r.favorite);
+    card.classList.toggle('fav', r.favorite);
+    save();
+  };
+  const del = card.querySelector('[data-rm]');
+  del.onclick = ()=>{
+    if(del.dataset.armed){
+      refs.splice(+card.getAttribute('data-card'), 1);
+      save(); renderTabs(); renderCards();
+      return;
+    }
+    del.dataset.armed = '1'; del.textContent = '✕?'; del.style.color = 'var(--red)';
+    setTimeout(()=>{
+      if(del.isConnected){ delete del.dataset.armed; del.textContent = '✕'; del.style.color = ''; }
+    }, 2500);
+  };
+  card.querySelectorAll('[data-txt]').forEach(ta=>ta.oninput = ()=>{
+    ref()[ta.getAttribute('data-txt')] = ta.value; save();
+  });
+}
+
+function renderCards(){
+  const tab = state.activeTab;
+  const box = document.getElementById('cards');
+  box.classList.toggle('wide', tab==='long');
+  const refs = state.refs[tab];
+  if(!refs.length){ box.innerHTML = '<div class="empty" style="grid-column:1/-1">'+t('emptyTab')+'</div>'; return; }
+  box.innerHTML = refs.map(cardHtml).join('');
+  box.querySelectorAll('.card').forEach(el=>bindCard(el, refs));
+}
+
+/* ============ add reference ============ */
+function addRef(){
+  const inp = document.getElementById('urlInput');
+  let url = inp.value.trim();
+  if(url && !/^https?:\/\//i.test(url) && /^[\w-]+\.[\w./-]/.test(url)) url = 'https://'+url;
+  if(!/^https?:\/\//i.test(url)){ showToast(t('badUrl')); return; }
+  const p = parseRef(url);
+  const refs = state.refs[state.activeTab];
+  const wasEmpty = refs.length === 0;
+  refs.push({
+    url, platform:p.platform, embed:p.embed, shape:p.shape,
+    verdict:null, favorite:false, aspects:{}, likes:'', dislikes:''
+  });
+  inp.value = '';
+  save(); renderTabs();
+  if(wasEmpty){ renderCards(); return; }
+  // append just the new card so the embeds already on screen don't reload
+  const box = document.getElementById('cards');
+  box.insertAdjacentHTML('beforeend', cardHtml(refs[refs.length-1], refs.length-1));
+  bindCard(box.lastElementChild, refs);
+}
+
+/* ============ client fields ============ */
+function bindFields(){
+  const map = {clientName:'clientName', fAbout:'about', fOffer:'offer', fAudience:'audience', fGoal:'goal', fNotes:'notes'};
+  for(const id in map){
+    const el = document.getElementById(id);
+    el.value = state[map[id]]||'';
+    el.oninput = ()=>{ state[map[id]] = el.value; save(); };
+  }
+  const kw = document.getElementById('kwInput');
+  kw.onkeydown = e=>{
+    if(e.key==='Enter' && kw.value.trim()){
+      kw.value.split(',').map(s=>s.trim()).filter(Boolean).forEach(k=>{
+        if(!state.keywords.includes(k)) state.keywords.push(k);
+      });
+      kw.value=''; save(); renderKeywords();
+    }
+  };
+}
+
+/* ============ export ============ */
+function sliderBar(l, r, v){
+  const pos = Math.round((v??50)/10);
+  let bar = '';
+  for(let i=0;i<=10;i++) bar += (i===pos?'●':'—');
+  return l+' '+bar+' '+r+'  ('+(v??50)+'/100)';
+}
+function sliderLine(k){
+  const [l,r] = t('sliders')[k];
+  return sliderBar(l, r, state.sliders[k]);
+}
+function buildReport(){
+  const L = I18N[state.lang];
+  const lines = [];
+  lines.push('REFERENCE BOARD — '+(state.clientName||'—'));
+  lines.push('');
+  lines.push('=== '+L.r_client+' ===');
+  lines.push(L.r_keywords+': '+(state.keywords.join(', ')||L.r_none));
+  lines.push(L.r_about+': '+(state.about||L.r_none));
+  lines.push(L.r_offer+': '+(state.offer||L.r_none));
+  lines.push(L.r_audience+': '+(state.audience||L.r_none));
+  lines.push(L.r_goal+': '+(state.goal||L.r_none));
+  lines.push('');
+  lines.push('=== '+L.r_style+' ===');
+  SLIDER_KEYS.forEach(k=>lines.push(sliderLine(k)));
+  (state.custom||[]).forEach(c=>lines.push(sliderBar(c.l, c.r, c.v)));
+  lines.push('');
+  lines.push('=== '+L.r_refs+' ===');
+  const vLabel = {want:L.verdictWant, partial:L.verdictPartial, no:L.verdictNo};
+  TAB_KEYS.forEach(tab=>{
+    const refs = state.refs[tab];
+    if(!refs.length) return;
+    lines.push('');
+    lines.push('--- '+L.tabs[tab]+' ('+refs.length+') ---');
+    refs.forEach((r,i)=>{
+      lines.push('');
+      lines.push((i+1)+'. '+r.url+(r.favorite?'  '+L.fav:''));
+      lines.push('   '+L.r_verdict+': '+(vLabel[r.verdict]||L.r_none));
+      const liked = ASPECT_KEYS.filter(a=>(r.aspects||{})[a]===1).map(a=>L.aspects[a]);
+      const disliked = ASPECT_KEYS.filter(a=>(r.aspects||{})[a]===-1).map(a=>L.aspects[a]);
+      lines.push('   '+L.r_liked+': '+(liked.join(', ')||L.r_none));
+      lines.push('   '+L.r_disliked+': '+(disliked.join(', ')||L.r_none));
+      if(r.likes) lines.push('   '+L.r_commentLike+': '+r.likes);
+      if(r.dislikes) lines.push('   '+L.r_commentDislike+': '+r.dislikes);
+    });
+  });
+  if(state.notes && state.notes.trim()){
+    lines.push('');
+    lines.push('=== '+L.r_notes+' ===');
+    lines.push(state.notes.trim());
+  }
+  return lines.join('\n');
+}
+function download(name, content, type){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], {type}));
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function slug(){ return (state.clientName||'client').toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi,'-').replace(/^-|-$/g,'')||'client'; }
+function showToast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2200);
+}
+
+/* ============ init ============ */
+function renderAll(){
+  applyLang(); renderKeywords(); renderSliders(); renderTabs(); renderCards(); bindFields();
+}
+function loadLocal(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(LS_KEY));
+    if(saved && saved.refs) state = Object.assign(state, saved);
+  }catch(e){}
+}
+function showGate(title, text){
+  document.getElementById('gate').style.display = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('gateTitle').textContent = title;
+  document.getElementById('gateText').textContent = text;
+  document.getElementById('pinForm').style.display = 'none';
+}
+function showPinGate(wrong){
+  showGate('Цей борд захищено PIN-кодом', 'Введіть PIN з нашого повідомлення · Enter the PIN we sent you');
+  document.getElementById('pinForm').style.display = '';
+  document.getElementById('pinErr').textContent = wrong ? 'Невірний PIN · Wrong PIN' : '';
+  document.getElementById('pinInput').focus();
+}
+function showApp(){
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = '';
+}
+
+document.getElementById('addBtn').onclick = addRef;
+document.getElementById('urlInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addRef(); });
+document.getElementById('saveBtn').onclick = async ()=>{
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+  if(DEMO){ showToast(t('demoMode')); return; }
+  clearTimeout(saveTimer);
+  setStatus('saving');
+  const ok = await pushServer();
+  if(ok) showToast(t('saved'));
+};
+// flush unsaved changes when the tab closes
+window.addEventListener('beforeunload', ()=>{
+  if(DEMO || !dirty) return;
+  try{
+    let url = '/api/board?token='+encodeURIComponent(TOKEN);
+    if(BOARD_PIN) url += '&pin='+encodeURIComponent(BOARD_PIN);
+    navigator.sendBeacon(url, new Blob([JSON.stringify(state)], {type:'application/json'}));
+  }catch(e){}
+});
+document.getElementById('btnReport').onclick = ()=>download('reference-board-'+slug()+'.txt', buildReport(), 'text/plain;charset=utf-8');
+document.getElementById('btnCopy').onclick = ()=>{
+  const txt = buildReport();
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>showToast(t('copied')), ()=>fallbackCopy(txt));
+  } else fallbackCopy(txt);
+};
+function fallbackCopy(txt){
+  const ta = document.createElement('textarea');
+  ta.value = txt; document.body.appendChild(ta); ta.select();
+  document.execCommand('copy'); ta.remove(); showToast(t('copied'));
+}
+
+async function boot(){
+  showGate(I18N.ua.loading, '');
+  try{
+    const r = await fetch('/api/board?token='+encodeURIComponent(TOKEN), {cache:'no-store', headers: authHeaders()});
+    if(r.status === 404){ showGate(I18N.ua.invalidTitle, I18N.ua.invalidText); return; }
+    if(r.status === 401){ showPinGate(BOARD_PIN !== ''); return; }
+    if(!r.ok) throw new Error('load failed');
+    if(BOARD_PIN){ try{ localStorage.setItem(PIN_KEY, BOARD_PIN); }catch(e){} }
+    const data = await r.json();
+    if(data.state && data.state.refs){
+      state = Object.assign(state, data.state);
+    } else {
+      loadLocal();
+      if(data.client && data.client.name && !state.clientName) state.clientName = data.client.name;
+    }
+    showApp(); renderAll();
+  }catch(e){
+    // server unreachable: fall back to local cache so the client doesn't lose work
+    loadLocal(); showApp(); renderAll(); setStatus('error');
+  }
+}
+
+document.getElementById('pinBtn').onclick = ()=>{
+  const v = document.getElementById('pinInput').value.trim();
+  if(!v) return;
+  BOARD_PIN = v;
+  boot();
+};
+document.getElementById('pinInput').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('pinBtn').click(); });
+
+(function init(){
+  if(DEMO){
+    loadLocal(); showApp(); renderAll(); showToast(t('demoMode'));
+    return;
+  }
+  if(!TOKEN){
+    showGate(I18N.ua.invalidTitle, I18N.ua.invalidText);
+    return;
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
